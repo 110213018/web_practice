@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="UTF-8" />
+<meta name="keywords" content=" " />
+<meta name="description" content=" " />
+<title>random 5 card</title>
+<script type="text/javascript">
+//找隨機數對應的撲克牌
+function num2Card(num){													//num:隨機數
+	var pokerNum = ["A",2,3,4,5,6,7,8,9,10,"J","Q","K"];				//牌面數字; var:宣告變數(全域性)/let:宣告變數(區塊性{})
+	var pokerColor = ["S","H","D","C"];									//花色
+	return pokerNum[(num-1)%13]+pokerColor[Math.ceil(num/13)-1]+".png";	//pokerNum[餘數]+pokerColor[商數]=(牌面數字+花色).png; Math.ceil:向上取整數
+}
+//生成a~b(包含ab)的隨機整數; math.floor:向下取整數
+function myRandom(a, b) {
+	return Math.floor(a+Math.random()*(b-a+1));
+}
+var selected = new Array(53); 	//長度為53的陣列，位址1~52為撲克牌1~52，undefined
+window.onload=function() { 		//當頁面加載完成時，執行以下程式
+	var ranNum=[]; 				//存放隨機數
+	var r; 						//隨機數
+	for (var i=1;i<6;i++) { 	//生成5個隨機數
+		do {
+			r = myRandom(1,52); //生成1個介於1~52的隨機數
+		} while(selected[r]); 	//undefined(如果arr1中的值沒被定義過:沒被選擇過)-->true; while為true才執行do
+		selected[r]=1; 			//將selected[隨機數]的值設為1-->defined被定義過
+		ranNum.push(r); 		//將選中的隨機數加到ranNum
+	}
+	var card = document.getElementById("card");		//獲取具有id"card"的容器元素，並賦予值
+	ranNum.forEach(function(num) {					//創建並加入img; forEach循環ranNum中的值(num=ranNum的每一個值)
+		var cardImg = document.createElement("img");//創一個圖像元素
+		cardImg.src = "img/back/yellow_back.png";		//撲克牌背面圖像
+		cardImg.width = 171;						//設定圖片寬
+		cardImg.height = 264;						//設定圖片長
+		cardImg.style.margin = "20px";				//設定圖片間距
+		card.appendChild(cardImg);					//將圖像元素加到具有id"card"的容器元素中; appendChild:將元素加到容器元素的末尾(水平排列)
+		//切換圖像正背面
+		cardImg.addEventListener("click", function () {
+			if (cardImg.src.includes("img/back/yellow_back.png")) { //如果點擊背面，就會出現正面
+				cardImg.src = "img/front/"+num2Card(num);
+			} else {											//如果點擊正面，就會出現背面
+				cardImg.src = "img/back/yellow_back.png";
+			}
+		});														//用於結束forEach循環(循環結束位置)
+	});
+}
+</script>
+</head>
+<body style="color:#2F4F4F; background-color:#FFEBCD">
+<h1 style="padding:50px; text-align:center">隨機的5張牌</h1>
+<div id="card" style="padding:10px; text-align:center" ></div>
+</body>
+</html>

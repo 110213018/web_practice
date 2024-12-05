@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>點點球遊戲</title>
+<style type="text/css">
+	#gameAreaContainer {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+		padding:20px;
+    }
+    #gameArea {
+		width: 1000px;
+		height: 450px;
+		border: 5px solid #2F4F4F;
+		border-radius: 50px;
+		position: relative;
+		display: flex;
+		justify-content: center; /*將内容水平置中*/
+		align-items: center; /*將内容垂直置中*/
+    }
+	.ball{
+		position: absolute;
+	}
+</style>
+</head>
+<body style="padding:10px;font-weight: bold; text-align:center; background-image:url(img/back.webp); background-size:cover">
+<h2 style="padding:20px; background-color:rgba(0,0,0,0.7); color:white;border-radius: 50px;">抓住偷吃草莓的鴨子</h2>
+<div style="display: flex; flex-direction: row; justify-content:center; gap:80px">
+	<div id="countdown"></div>
+	<form style="color:#2F4F4F">
+		<label for="difficultySelect">遊戲難易度：</label>
+		<select id="difficultySelect">
+		  <option value="easy">易</option>
+		  <option value="medium">中</option>
+		  <option value="hard">難</option>
+		</select>
+		<button id="startButton" type="button" onclick="wait();">開始</button>
+	</form>
+	<div id="score"></div>
+</div>
+<div id="gameAreaContainer">
+	<div id="gameArea">
+		<div id="result" style="font-size:30px;"></div>
+		<div id="ball" ></div>
+	</div>
+</div>
+<div ></div>
+<script type="text/javascript">
+	var result = document.getElementById("result");			//結果顯示
+	var countdown = document.getElementById("countdown");	//倒數計時
+	var ballTimer;											//控制ball（鴨子）的出現和消失
+	var ball = document.getElementById("ball");				//鴨子
+	var gameScore = 0; 										//得分數
+	var gameArea = document.getElementById("gameArea"); 	//遊戲範圍
+	var end=false;											//是否進入結束階段
+	
+	//按下startButton~鴨子出現前 的隨機等待時間
+	function wait(){
+		end=false; 												//恢復初始(還未進入結束階段)
+		gameScore =0;											//恢復初始(分數歸零)
+		var scoreDisplay = document.getElementById("score");
+		scoreDisplay.innerHTML = "逮捕鴨子: " + gameScore + "隻";   //分數顯示
+		
+		result.style.display="none";							//結果顯示初始(未顯示)
+		var previousBall = document.querySelector("ball"); 		//把上一局ball移除
+		if (previousBall) {
+			previousBall.remove();
+		}
+		
+		gameTimeSet();
+		
+		setTimeout(function() {									//隨機等待時間
+			startGame();
+		},randomTime(1000,5000) );
+	}
+	function randomTime(a, b) {
+		return Math.floor(a+Math.random()*(b-a+1));
+	}
+
+	//遊戲時間設定
+	function gameTimeSet(){
+		var gameTime = 60;	 										 // 設定遊戲時間為60秒 
+		var timerDisplay = document.getElementById("countdown");	 // 更新計時器顯示
+		timerDisplay.innerHTML = "剩餘時間: " + gameTime + "秒";
+		var timerInterval = setInterval(function() {				 // 啟動計時器
+			gameTime--; 											 // 減少1秒
+			timerDisplay.innerHTML = "剩餘時間: " + gameTime + "秒";
+			if (gameTime === 0) {
+				clearInterval(timerInterval);						 // 清除計時器
+				endGame();											 // 遊戲結束
+			}
+		}, 1000); 													 // 每秒執行一次
+	}
+
+    function startGame() {	
+		// 取得選擇的難易度
+	    var difficultySelect = document.getElementById("difficultySelect");//難易度
+		var difficulty = difficultySelect.value;
+      
+		// 設定每個難易度球的大小和出現時間
+		var ballSize, time;
+		if (difficulty == 'easy') {
+			ballSize = "150";
+			time = 3000;
+		} else if (difficulty == 'medium') {
+			ballSize = "90";
+			time = 2000;
+		} else if (difficulty == 'hard') {
+			ballSize = "50";
+			time = 1500;
+		}
+		showBall(ball,ballSize,time);
+		
+		ball.onclick=function(){
+			showBall(ball,ballSize,time);	
+		};
+	}
+	function showBall(ball,ballSize,time){
+		var scoreDisplay = document.getElementById("score"); 
+		
+		ball = document.createElement("img");
+		clearTimeout(ballTimer);
+		ball.src = "img/ball.png";
+		ball.classList.add("ball");
+		ball.style.width = ballSize+"px";
+		ball.style.height = ballSize+"px";
+		ball.style.display="block";
+		ball.style.left = getRandomPosition(gameArea.offsetWidth - parseInt(ballSize)) + 'px';
+		ball.style.top = getRandomPosition(gameArea.offsetHeight - parseInt(ballSize)) + 'px';      
+		gameArea.appendChild(ball);
+		
+		var isClicked=false;
+		ball.onclick = function () {
+			isClicked=true;
+			gameScore++;
+			scoreDisplay.innerHTML = "逮捕鴨子: " + gameScore + "隻";
+			ball.style.display = "none";
+			showBall(ball, ballSize, time);
+		};
+		var timeID = setTimeout(function() {
+			if (end){
+				endGame();
+			}else if (!isClicked && !end) {
+				ball.style.display = 'none'; // x秒後隱藏球
+				showBall(ball, ballSize, time);
+			}
+		}, time);
+		
+	}
+	
+    function getRandomPosition(max) {
+		return Math.floor(Math.random() * max);
+    }
+	
+	function endGame() {	
+		end=true;
+		if (ball.parentNode === gameArea) {
+			gameArea.removeChild(ball);
+		}
+		if (gameScore>=50){
+			result.innerHTML = "玩家等級:鴨子獵人Lv.100";	
+		}if (gameScore>=30&& gameScore<50){
+			result.innerHTML = "玩家等級:鴨子農Lv.50";
+		}else if (gameScore<30){
+			result.innerHTML = "玩家等級:小菜鳥Lv.10";
+		}else{
+			ball.style.display = "none";
+			result.innerHTML="";
+		}
+		result.style.display="block";
+		var balls = document.querySelectorAll(".ball");
+		balls.forEach(function(ball) {
+			ball.style.display = "none";
+		});
+	}
+
+</script>
+</body>
+</html>
